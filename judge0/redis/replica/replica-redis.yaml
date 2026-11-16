@@ -1,0 +1,88 @@
+# Redis seguidor do serviço headless redis-node-1. Readiness depende do link
+# de replicação estar ativo, enquanto liveness verifica que o processo responde.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-replica
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: redis-replica
+
+  template:
+    metadata:
+      labels:
+        app: redis-replica
+        role: replica
+
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+        kubernetes.io/hostname: srv-kube-worker-1
+
+      containers:
+        - name: redis-replica
+          image: redis:7.2.4
+
+          command:
+            - "sh"
+            - "-c"
+
+          args:
+            - |
+              exec docker-entrypoint.sh \
+                --replicaof redis-node-1 6379 \
+                --appendonly yes \
+                --masterauth "$REDIS_PASSWORD" \
+                --requirepass "$REDIS_PASSWORD"
+
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: judge0-env
+                  key: REDIS_PASSWORD
+
+          ports:
+            - containerPort: 6379
+              name: redis
+
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli --no-auth-warning INFO replication | grep -q "^master_link_status:up"'
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli --no-auth-warning ping | grep -q PONG'
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+
+          volumeMounts:
+            - name: redis-replica-data
+              mountPath: /data
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+      volumes:
+        - name: redis-replica-data
+          persistentVolumeClaim:
+            claimName: redis-replica-data

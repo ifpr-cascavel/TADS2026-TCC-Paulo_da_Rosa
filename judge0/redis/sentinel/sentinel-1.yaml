@@ -1,0 +1,85 @@
+# Primeiro Sentinel, agendado no control-plane. A toleration permite o Pod
+# nesse nó; confirme que o host e a taint correspondem ao cluster de destino.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-sentinel-1
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: redis-sentinel
+      sentinel-id: "1"
+
+  template:
+    metadata:
+      labels:
+        app: redis-sentinel
+        sentinel-id: "1"
+
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: srv-kube-master-cplane
+      #garante que o pod funcione no coontrolplane
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists # se existir a chave
+          effect: NoSchedule
+
+      containers:
+        - name: sentinel
+          image: redis:7.2.4
+          imagePullPolicy: IfNotPresent
+
+          command:
+            - sh
+            - /bootstrap/start-sentinel.sh
+
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: judge0-env
+                  key: REDIS_PASSWORD
+
+          ports:
+            - name: sentinel
+              containerPort: 26379
+
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          # verifica se o Pod stá online e funcional
+          readinessProbe:
+            tcpSocket:
+              port: 26379
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          # verifica se pode o processo Redis está funcinonal ou precisa de reinicialização
+          livenessProbe:
+            tcpSocket:
+              port: 26379
+            initialDelaySeconds: 10
+            periodSeconds: 10
+
+          volumeMounts:
+            - name: bootstrap
+              mountPath: /bootstrap
+              readOnly: true
+
+            - name: sentinel-data
+              mountPath: /data
+
+      volumes:
+        - name: bootstrap
+          configMap:
+            name: redis-sentinel-bootstrap
+            defaultMode: 0555
+
+        - name: sentinel-data
+          emptyDir: {}

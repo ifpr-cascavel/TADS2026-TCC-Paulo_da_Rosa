@@ -1,0 +1,103 @@
+# PostgreSQL principal. O ConfigMap de init cria o papel replicator e a regra
+# de pg_hba somente quando PGDATA está vazio; dados existentes não são alterados.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: db
+
+  template:
+    metadata:
+      labels:
+        app: db
+
+    spec:
+      containers:
+        - name: db
+          image: postgres:16-alpine
+
+          env:
+            - name: POSTGRES_DB
+              value: judge0
+
+            - name: POSTGRES_USER
+              value: judge0
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: judge0-env
+                  key: POSTGRES_PASSWORD
+
+            - name: POSTGRES_REPLICATION_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-replication
+                  key: POSTGRES_REPLICATION_PASSWORD
+
+            - name: POSTGRES_REPLICATION_CIDR
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-replication
+                  key: POSTGRES_REPLICATION_CIDR
+
+            - name: POSTGRES_HOST_AUTH_METHOD
+              value: scram-sha-256
+
+          ports:
+            - containerPort: 5432
+              name: postgres
+
+          volumeMounts:
+            - name: vol-db
+              mountPath: /var/lib/postgresql/data
+
+            - name: replication-init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 3
+      nodeSelector:
+        kubernetes.io/arch: amd64
+
+      volumes:
+        - name: vol-db
+          persistentVolumeClaim:
+            claimName: postgres-data
+
+        - name: replication-init
+          configMap:
+            name: postgres-replication-init
+            defaultMode: 0555

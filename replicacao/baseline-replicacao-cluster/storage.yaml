@@ -1,0 +1,278 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolume","metadata":{"annotations":{},"name":"postgres-pv-primary"},"spec":{"accessModes":["ReadWriteOnce"],"capacity":{"storage":"10Gi"},"local":{"path":"/var/lib/judge0/postgres-primary"},"nodeAffinity":{"required":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"kubernetes.io/hostname","operator":"In","values":["srv-kube-worker-1"]}]}]}},"persistentVolumeReclaimPolicy":"Retain","storageClassName":"","volumeMode":"Filesystem"}}
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: "2026-10-15T19:29:17Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: postgres-pv-primary
+    resourceVersion: "5070617"
+    uid: e66783fc-40c6-4437-b5fd-eba44ddb7df2
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: postgres-data
+      namespace: default
+      resourceVersion: "5069761"
+      uid: 142e4cc5-d1d1-4346-98aa-36eb1c2cc028
+    local:
+      path: /var/lib/judge0/postgres-primary
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - srv-kube-worker-1
+    persistentVolumeReclaimPolicy: Retain
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolume","metadata":{"annotations":{},"name":"postgres-pv-replica"},"spec":{"accessModes":["ReadWriteOnce"],"capacity":{"storage":"10Gi"},"local":{"path":"/var/lib/judge0/postgres-replica"},"nodeAffinity":{"required":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"kubernetes.io/hostname","operator":"In","values":["srv-kube-worker-2"]}]}]}},"persistentVolumeReclaimPolicy":"Retain","storageClassName":"","volumeMode":"Filesystem"}}
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: "2026-10-15T19:47:53Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: postgres-pv-replica
+    resourceVersion: "5072397"
+    uid: e58dc1a9-baa9-4055-a56d-cdacb3a3abd7
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: postgres-replica-data
+      namespace: default
+      resourceVersion: "5072395"
+      uid: 666e59ef-1cde-45e7-afe8-00a3054a756c
+    local:
+      path: /var/lib/judge0/postgres-replica
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - srv-kube-worker-2
+    persistentVolumeReclaimPolicy: Retain
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolume","metadata":{"annotations":{},"name":"redis-pv-primary"},"spec":{"accessModes":["ReadWriteOnce"],"capacity":{"storage":"5Gi"},"local":{"path":"/var/lib/judge0/redis-primary"},"nodeAffinity":{"required":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"kubernetes.io/hostname","operator":"In","values":["srv-kube-worker-2"]}]}]}},"persistentVolumeReclaimPolicy":"Retain","storageClassName":"","volumeMode":"Filesystem"}}
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: "2026-10-15T20:51:08Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: redis-pv-primary
+    resourceVersion: "5078326"
+    uid: 28897d6c-c0c4-4b7d-98fc-3bda7d9a54df
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: redis-data
+      namespace: default
+      resourceVersion: "5078300"
+      uid: 73217e5e-18e8-4034-96cd-c0cc89f4fc51
+    local:
+      path: /var/lib/judge0/redis-primary
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - srv-kube-worker-2
+    persistentVolumeReclaimPolicy: Retain
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolume
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolume","metadata":{"annotations":{},"name":"redis-pv-replica"},"spec":{"accessModes":["ReadWriteOnce"],"capacity":{"storage":"5Gi"},"local":{"path":"/var/lib/judge0/redis-replica"},"nodeAffinity":{"required":{"nodeSelectorTerms":[{"matchExpressions":[{"key":"kubernetes.io/hostname","operator":"In","values":["srv-kube-worker-1"]}]}]}},"persistentVolumeReclaimPolicy":"Retain","storageClassName":"","volumeMode":"Filesystem"}}
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: "2026-10-15T21:01:54Z"
+    finalizers:
+    - kubernetes.io/pv-protection
+    name: redis-pv-replica
+    resourceVersion: "5079341"
+    uid: 5d73774c-a7a6-4451-b765-a62ee5cfbc1f
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    claimRef:
+      apiVersion: v1
+      kind: PersistentVolumeClaim
+      name: redis-replica-data
+      namespace: default
+      resourceVersion: "5079339"
+      uid: 0aa44dae-3b00-416f-ba5b-dd202c68edb9
+    local:
+      path: /var/lib/judge0/redis-replica
+    nodeAffinity:
+      required:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - srv-kube-worker-1
+    persistentVolumeReclaimPolicy: Retain
+    volumeMode: Filesystem
+  status:
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"postgres-data","namespace":"default"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"10Gi"}},"storageClassName":"","volumeName":"postgres-pv-primary"}}
+      pv.kubernetes.io/bind-completed: "yes"
+      pv.kubernetes.io/bound-by-controller: "yes"
+    creationTimestamp: "2026-10-15T19:20:27Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: postgres-data
+    namespace: default
+    resourceVersion: "5072392"
+    uid: 142e4cc5-d1d1-4346-98aa-36eb1c2cc028
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: ""
+    volumeMode: Filesystem
+    volumeName: postgres-pv-primary
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"postgres-replica-data","namespace":"default"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"10Gi"}},"storageClassName":"","volumeName":"postgres-pv-replica"}}
+      pv.kubernetes.io/bind-completed: "yes"
+    creationTimestamp: "2026-10-15T19:47:53Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: postgres-replica-data
+    namespace: default
+    resourceVersion: "5072407"
+    uid: 666e59ef-1cde-45e7-afe8-00a3054a756c
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: ""
+    volumeMode: Filesystem
+    volumeName: postgres-pv-replica
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 10Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"redis-data","namespace":"default"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":"","volumeName":"redis-pv-primary"}}
+      pv.kubernetes.io/bind-completed: "yes"
+    creationTimestamp: "2026-10-15T20:51:08Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: redis-data
+    namespace: default
+    resourceVersion: "5078349"
+    uid: 73217e5e-18e8-4034-96cd-c0cc89f4fc51
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: ""
+    volumeMode: Filesystem
+    volumeName: redis-pv-primary
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    phase: Bound
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"PersistentVolumeClaim","metadata":{"annotations":{},"name":"redis-replica-data","namespace":"default"},"spec":{"accessModes":["ReadWriteOnce"],"resources":{"requests":{"storage":"5Gi"}},"storageClassName":"","volumeName":"redis-pv-replica"}}
+      pv.kubernetes.io/bind-completed: "yes"
+    creationTimestamp: "2026-10-15T21:01:54Z"
+    finalizers:
+    - kubernetes.io/pvc-protection
+    name: redis-replica-data
+    namespace: default
+    resourceVersion: "5079366"
+    uid: 0aa44dae-3b00-416f-ba5b-dd202c68edb9
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 5Gi
+    storageClassName: ""
+    volumeMode: Filesystem
+    volumeName: redis-pv-replica
+  status:
+    accessModes:
+    - ReadWriteOnce
+    capacity:
+      storage: 5Gi
+    phase: Bound
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,626 @@
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"db","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"db"}},"template":{"metadata":{"labels":{"app":"db"}},"spec":{"containers":[{"env":[{"name":"POSTGRES_DB","value":"judge0"},{"name":"POSTGRES_USER","value":"judge0"},{"name":"POSTGRES_PASSWORD","valueFrom":{"secretKeyRef":{"key":"POSTGRES_PASSWORD","name":"judge0-env"}}}],"image":"postgres:16-alpine","name":"db","ports":[{"containerPort":5432,"name":"postgres"}],"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"volumeMounts":[{"mountPath":"/var/lib/postgresql/data","name":"vol-db"}]}],"nodeSelector":{"kubernetes.io/arch":"amd64"},"volumes":[{"name":"vol-db","persistentVolumeClaim":{"claimName":"postgres-data"}}]}}}}
+    creationTimestamp: "2026-09-05T13:26:30Z"
+    generation: 2
+    name: db
+    namespace: default
+    resourceVersion: "5190240"
+    uid: db05a605-e7f7-46cf-b26d-b72cb678ad54
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: db
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: db
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_DB
+            value: judge0
+          - name: POSTGRES_USER
+            value: judge0
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: judge0-env
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          name: db
+          ports:
+          - containerPort: 5432
+            name: postgres
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: vol-db
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          kubernetes.io/arch: amd64
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: vol-db
+          persistentVolumeClaim:
+            claimName: postgres-data
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-09-05T13:26:31Z"
+      lastUpdateTime: "2026-10-15T19:30:42Z"
+      message: ReplicaSet "db-75b996b5bf" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-16T17:22:25Z"
+      lastUpdateTime: "2026-10-16T17:22:25Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"db-replica","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"db-replica"}},"template":{"metadata":{"labels":{"app":"db-replica","role":"replica"}},"spec":{"containers":[{"env":[{"name":"POSTGRES_DB","value":"judge0"},{"name":"POSTGRES_USER","value":"judge0"},{"name":"POSTGRES_PASSWORD","valueFrom":{"secretKeyRef":{"key":"POSTGRES_PASSWORD","name":"judge0-env"}}}],"image":"postgres:16-alpine","name":"db-replica","ports":[{"containerPort":5432,"name":"postgres"}],"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"256Mi"}},"volumeMounts":[{"mountPath":"/var/lib/postgresql/data","name":"vol-db-replica"}]}],"initContainers":[{"command":["sh","-c","set -e\n\nif [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then\n  echo \"Copiando banco do PostgreSQL Primary...\"\n\n  chown -R 70:70 /var/lib/postgresql/data\n\n  su-exec postgres pg_basebackup \\\n    -h db \\\n    -p 5432 \\\n    -U replicator \\\n    -D /var/lib/postgresql/data \\\n    -Fp \\\n    -Xs \\\n    -P\n\n  echo \"db:5432:*:replicator:$PGPASSWORD\" \\\n    \u003e /var/lib/postgresql/data/.pgpass\n\n  chown 70:70 /var/lib/postgresql/data/.pgpass\n  chmod 600 /var/lib/postgresql/data/.pgpass\n\n  touch /var/lib/postgresql/data/standby.signal\n\n  echo \"primary_conninfo = 'host=db port=5432 user=replicator passfile=/var/lib/postgresql/data/.pgpass application_name=db-replica'\" \\\n    \u003e\u003e /var/lib/postgresql/data/postgresql.auto.conf\n\n  chown -R 70:70 /var/lib/postgresql/data\n\n  echo \"Replica preparada.\"\nelse\n  echo \"Banco existente encontrado. Clone nao necessario.\"\nfi\n"],"env":[{"name":"PGPASSWORD","valueFrom":{"secretKeyRef":{"key":"POSTGRES_REPLICATION_PASSWORD","name":"postgres-replication"}}}],"image":"postgres:16-alpine","name":"clone-primary","volumeMounts":[{"mountPath":"/var/lib/postgresql/data","name":"vol-db-replica"}]}],"nodeSelector":{"kubernetes.io/arch":"amd64","kubernetes.io/hostname":"srv-kube-worker-2"},"volumes":[{"name":"vol-db-replica","persistentVolumeClaim":{"claimName":"postgres-replica-data"}}]}}}}
+    creationTimestamp: "2026-10-15T20:09:49Z"
+    generation: 1
+    name: db-replica
+    namespace: default
+    resourceVersion: "5187356"
+    uid: 4995d2ae-7caf-4ae6-8f87-bd11a6b19ce5
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: db-replica
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: db-replica
+          role: replica
+      spec:
+        containers:
+        - env:
+          - name: POSTGRES_DB
+            value: judge0
+          - name: POSTGRES_USER
+            value: judge0
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_PASSWORD
+                name: judge0-env
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          name: db-replica
+          ports:
+          - containerPort: 5432
+            name: postgres
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: vol-db-replica
+        dnsPolicy: ClusterFirst
+        initContainers:
+        - command:
+          - sh
+          - -c
+          - |
+            set -e
+
+            if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then
+              echo "Copiando banco do PostgreSQL Primary..."
+
+              chown -R 70:70 /var/lib/postgresql/data
+
+              su-exec postgres pg_basebackup \
+                -h db \
+                -p 5432 \
+                -U replicator \
+                -D /var/lib/postgresql/data \
+                -Fp \
+                -Xs \
+                -P
+
+              echo "db:5432:*:replicator:$PGPASSWORD" \
+                > /var/lib/postgresql/data/.pgpass
+
+              chown 70:70 /var/lib/postgresql/data/.pgpass
+              chmod 600 /var/lib/postgresql/data/.pgpass
+
+              touch /var/lib/postgresql/data/standby.signal
+
+              echo "primary_conninfo = 'host=db port=5432 user=replicator passfile=/var/lib/postgresql/data/.pgpass application_name=db-replica'" \
+                >> /var/lib/postgresql/data/postgresql.auto.conf
+
+              chown -R 70:70 /var/lib/postgresql/data
+
+              echo "Replica preparada."
+            else
+              echo "Banco existente encontrado. Clone nao necessario."
+            fi
+          env:
+          - name: PGPASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: POSTGRES_REPLICATION_PASSWORD
+                name: postgres-replication
+          image: postgres:16-alpine
+          imagePullPolicy: IfNotPresent
+          name: clone-primary
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            name: vol-db-replica
+        nodeSelector:
+          kubernetes.io/arch: amd64
+          kubernetes.io/hostname: srv-kube-worker-2
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: vol-db-replica
+          persistentVolumeClaim:
+            claimName: postgres-replica-data
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-10-15T20:09:50Z"
+      lastUpdateTime: "2026-10-15T20:09:57Z"
+      message: ReplicaSet "db-replica-56967b4cd5" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-16T16:54:37Z"
+      lastUpdateTime: "2026-10-16T16:54:37Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "2"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"redis","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"redis"}},"template":{"metadata":{"labels":{"app":"redis","role":"primary"}},"spec":{"containers":[{"args":["exec docker-entrypoint.sh \\\n  --appendonly yes \\\n  --requirepass \"$REDIS_PASSWORD\"\n"],"command":["sh","-c"],"env":[{"name":"REDIS_PASSWORD","valueFrom":{"secretKeyRef":{"key":"REDIS_PASSWORD","name":"judge0-env"}}}],"image":"redis:7.2.4","name":"redis","ports":[{"containerPort":6379,"name":"redis"}],"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"volumeMounts":[{"mountPath":"/data","name":"redis-data"}]}],"nodeSelector":{"kubernetes.io/arch":"amd64","kubernetes.io/hostname":"srv-kube-worker-2"},"volumes":[{"name":"redis-data","persistentVolumeClaim":{"claimName":"redis-data"}}]}}}}
+    creationTimestamp: "2026-09-05T13:26:31Z"
+    generation: 2
+    name: redis
+    namespace: default
+    resourceVersion: "5187386"
+    uid: 546e4c8f-69ee-42d0-949b-f8e02d4b22bd
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: redis
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: redis
+          role: primary
+      spec:
+        containers:
+        - args:
+          - |
+            exec docker-entrypoint.sh \
+              --appendonly yes \
+              --requirepass "$REDIS_PASSWORD"
+          command:
+          - sh
+          - -c
+          env:
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: REDIS_PASSWORD
+                name: judge0-env
+          image: redis:7.2.4
+          imagePullPolicy: IfNotPresent
+          name: redis
+          ports:
+          - containerPort: 6379
+            name: redis
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /data
+            name: redis-data
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          kubernetes.io/arch: amd64
+          kubernetes.io/hostname: srv-kube-worker-2
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-09-05T13:26:31Z"
+      lastUpdateTime: "2026-10-15T20:51:39Z"
+      message: ReplicaSet "redis-676b68999c" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-16T16:54:42Z"
+      lastUpdateTime: "2026-10-16T16:54:42Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 2
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "1"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"redis-replica","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"redis-replica"}},"template":{"metadata":{"labels":{"app":"redis-replica","role":"replica"}},"spec":{"containers":[{"args":["exec docker-entrypoint.sh \\\n  --replicaof redis 6379 \\\n  --appendonly yes \\\n  --masterauth \"$REDIS_PASSWORD\" \\\n  --requirepass \"$REDIS_PASSWORD\"\n"],"command":["sh","-c"],"env":[{"name":"REDIS_PASSWORD","valueFrom":{"secretKeyRef":{"key":"REDIS_PASSWORD","name":"judge0-env"}}}],"image":"redis:7.2.4","name":"redis-replica","ports":[{"containerPort":6379,"name":"redis"}],"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"volumeMounts":[{"mountPath":"/data","name":"redis-replica-data"}]}],"nodeSelector":{"kubernetes.io/arch":"amd64","kubernetes.io/hostname":"srv-kube-worker-1"},"volumes":[{"name":"redis-replica-data","persistentVolumeClaim":{"claimName":"redis-replica-data"}}]}}}}
+    creationTimestamp: "2026-10-15T21:01:54Z"
+    generation: 1
+    name: redis-replica
+    namespace: default
+    resourceVersion: "5190254"
+    uid: 74dcd550-c063-4f19-a19b-8e06eff938d8
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: redis-replica
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: redis-replica
+          role: replica
+      spec:
+        containers:
+        - args:
+          - |
+            exec docker-entrypoint.sh \
+              --replicaof redis 6379 \
+              --appendonly yes \
+              --masterauth "$REDIS_PASSWORD" \
+              --requirepass "$REDIS_PASSWORD"
+          command:
+          - sh
+          - -c
+          env:
+          - name: REDIS_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: REDIS_PASSWORD
+                name: judge0-env
+          image: redis:7.2.4
+          imagePullPolicy: IfNotPresent
+          name: redis-replica
+          ports:
+          - containerPort: 6379
+            name: redis
+            protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /data
+            name: redis-replica-data
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          kubernetes.io/arch: amd64
+          kubernetes.io/hostname: srv-kube-worker-1
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: redis-replica-data
+          persistentVolumeClaim:
+            claimName: redis-replica-data
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2026-10-15T21:01:54Z"
+      lastUpdateTime: "2026-10-15T21:04:16Z"
+      message: ReplicaSet "redis-replica-7fdff6c4c9" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-16T17:22:28Z"
+      lastUpdateTime: "2026-10-16T17:22:28Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 1
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "11"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"srv-judge0"},"name":"srv-judge0","namespace":"default"},"spec":{"replicas":2,"selector":{"matchLabels":{"app":"srv-judge0"}},"strategy":{"rollingUpdate":{"maxSurge":0,"maxUnavailable":1},"type":"RollingUpdate"},"template":{"metadata":{"labels":{"app":"srv-judge0"}},"spec":{"affinity":{"podAntiAffinity":{"requiredDuringSchedulingIgnoredDuringExecution":[{"labelSelector":{"matchExpressions":[{"key":"app","operator":"In","values":["srv-judge0"]}]},"topologyKey":"kubernetes.io/hostname"}]}},"containers":[{"image":"judge0/judge0:latest","name":"srv-judge0","ports":[{"containerPort":2358,"name":"http"}],"resources":{"limits":{"cpu":"1000m","memory":"1024Mi"},"requests":{"cpu":"250m","memory":"256Mi"}},"securityContext":{"allowPrivilegeEscalation":true,"privileged":true},"volumeMounts":[{"mountPath":"/judge0.conf","name":"vol-submissions","readOnly":true,"subPath":"judge0.conf"}]}],"nodeSelector":{"kubernetes.io/arch":"amd64"},"volumes":[{"name":"vol-submissions","secret":{"secretName":"vol-config"}}]}}}}
+    creationTimestamp: "2026-09-05T13:26:31Z"
+    generation: 15
+    labels:
+      app: srv-judge0
+    name: srv-judge0
+    namespace: default
+    resourceVersion: "5190265"
+    uid: 0258b985-eff6-49f8-9780-187849e05265
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 2
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: srv-judge0
+    strategy:
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2026-10-14T16:56:03-03:00"
+        creationTimestamp: null
+        labels:
+          app: srv-judge0
+      spec:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - srv-judge0
+              topologyKey: kubernetes.io/hostname
+        containers:
+        - image: judge0/judge0:latest
+          imagePullPolicy: Always
+          name: srv-judge0
+          ports:
+          - containerPort: 2358
+            name: http
+            protocol: TCP
+          resources:
+            limits:
+              cpu: "1"
+              memory: 1Gi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /judge0.conf
+            name: vol-submissions
+            readOnly: true
+            subPath: judge0.conf
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          kubernetes.io/arch: amd64
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: vol-submissions
+          secret:
+            defaultMode: 420
+            secretName: vol-config
+  status:
+    availableReplicas: 2
+    conditions:
+    - lastTransitionTime: "2026-10-14T20:05:07Z"
+      lastUpdateTime: "2026-10-14T20:05:07Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2026-09-05T13:26:31Z"
+      lastUpdateTime: "2026-10-15T21:25:32Z"
+      message: ReplicaSet "srv-judge0-66f5f4b57" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 15
+    readyReplicas: 2
+    replicas: 2
+    updatedReplicas: 2
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "30"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"name":"wk-judge0","namespace":"default"},"spec":{"replicas":4,"selector":{"matchLabels":{"app":"wk-judge0"}},"template":{"metadata":{"labels":{"app":"wk-judge0"}},"spec":{"containers":[{"command":["./scripts/workers"],"image":"judge0/judge0:latest","name":"wk-judge0","resources":{"limits":{"cpu":"1500m","memory":"2048Mi"},"requests":{"cpu":"500m","memory":"512Mi"}},"securityContext":{"allowPrivilegeEscalation":true,"privileged":true},"volumeMounts":[{"mountPath":"/judge0.conf","name":"vol-workers","readOnly":true,"subPath":"judge0.conf"}]}],"nodeSelector":{"kubernetes.io/arch":"amd64"},"volumes":[{"name":"vol-workers","secret":{"secretName":"vol-config"}}]}}}}
+    creationTimestamp: "2026-09-05T13:26:31Z"
+    generation: 202
+    name: wk-judge0
+    namespace: default
+    resourceVersion: "5187590"
+    uid: 593487cf-ae0b-4ac7-8de5-52b2a29049fb
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 4
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: wk-judge0
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        annotations:
+          kubectl.kubernetes.io/restartedAt: "2026-10-14T16:56:04-03:00"
+        creationTimestamp: null
+        labels:
+          app: wk-judge0
+      spec:
+        containers:
+        - command:
+          - ./scripts/workers
+          image: judge0/judge0:latest
+          imagePullPolicy: Always
+          name: wk-judge0
+          resources:
+            limits:
+              cpu: 1500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: true
+            privileged: true
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /judge0.conf
+            name: vol-workers
+            readOnly: true
+            subPath: judge0.conf
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          kubernetes.io/arch: amd64
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - name: vol-workers
+          secret:
+            defaultMode: 420
+            secretName: vol-config
+  status:
+    availableReplicas: 4
+    conditions:
+    - lastTransitionTime: "2026-09-05T13:26:31Z"
+      lastUpdateTime: "2026-10-15T21:21:01Z"
+      message: ReplicaSet "wk-judge0-7585f64d68" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    - lastTransitionTime: "2026-10-16T16:51:14Z"
+      lastUpdateTime: "2026-10-16T16:51:14Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    observedGeneration: 202
+    readyReplicas: 4
+    replicas: 4
+    updatedReplicas: 4
+kind: List
+metadata:
+  resourceVersion: ""

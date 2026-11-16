@@ -1,0 +1,76 @@
+apiVersion: v1
+items:
+- apiVersion: autoscaling/v2
+  kind: HorizontalPodAutoscaler
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"autoscaling/v2","kind":"HorizontalPodAutoscaler","metadata":{"annotations":{},"name":"wk-judge0-hpa","namespace":"default"},"spec":{"maxReplicas":10,"metrics":[{"resource":{"name":"cpu","target":{"averageUtilization":100,"type":"Utilization"}},"type":"Resource"}],"minReplicas":4,"scaleTargetRef":{"apiVersion":"apps/v1","kind":"Deployment","name":"wk-judge0"}}}
+    creationTimestamp: "2026-09-05T13:26:31Z"
+    name: wk-judge0-hpa
+    namespace: default
+    resourceVersion: "5192927"
+    uid: 20782392-f62b-4b64-8feb-7f4b6895b6cd
+  spec:
+    behavior:
+      scaleDown:
+        policies:
+        - periodSeconds: 15
+          type: Percent
+          value: 100
+        selectPolicy: Max
+        stabilizationWindowSeconds: 30
+      scaleUp:
+        policies:
+        - periodSeconds: 15
+          type: Pods
+          value: 4
+        - periodSeconds: 15
+          type: Percent
+          value: 100
+        selectPolicy: Max
+        stabilizationWindowSeconds: 0
+    maxReplicas: 10
+    metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 100
+          type: Utilization
+      type: Resource
+    minReplicas: 4
+    scaleTargetRef:
+      apiVersion: apps/v1
+      kind: Deployment
+      name: wk-judge0
+  status:
+    conditions:
+    - lastTransitionTime: "2026-09-05T13:26:46Z"
+      message: recommended size matches current size
+      reason: ReadyForNewScale
+      status: "True"
+      type: AbleToScale
+    - lastTransitionTime: "2026-10-16T17:22:48Z"
+      message: the HPA was able to successfully calculate a replica count from cpu
+        resource utilization (percentage of request)
+      reason: ValidMetricFound
+      status: "True"
+      type: ScalingActive
+    - lastTransitionTime: "2026-10-16T17:25:35Z"
+      message: the desired replica count is less than the minimum replica count
+      reason: TooFewReplicas
+      status: "True"
+      type: ScalingLimited
+    currentMetrics:
+    - resource:
+        current:
+          averageUtilization: 4
+          averageValue: 21m
+        name: cpu
+      type: Resource
+    currentReplicas: 4
+    desiredReplicas: 4
+    lastScaleTime: "2026-10-16T16:55:53Z"
+kind: List
+metadata:
+  resourceVersion: ""

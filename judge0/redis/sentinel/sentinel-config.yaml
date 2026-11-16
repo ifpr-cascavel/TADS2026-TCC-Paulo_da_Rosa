@@ -1,0 +1,29 @@
+# Bootstrap compartilhado dos três Sentinels. O quorum configurado é 2;
+# Sentinel pode promover uma réplica, mas não redireciona sozinho o cliente Judge0.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-sentinel-bootstrap
+data:
+  start-sentinel.sh: |
+    #!/bin/sh
+    set -eu
+
+    if [ ! -f /data/sentinel.conf ]; then
+      cat > /data/sentinel.conf <<EOF
+    port 26379
+    bind 0.0.0.0
+    protected-mode no
+    dir /data
+
+    sentinel resolve-hostnames yes
+    sentinel monitor judge0-redis redis-node-1 6379 2
+    sentinel auth-pass judge0-redis ${REDIS_PASSWORD}
+
+    sentinel down-after-milliseconds judge0-redis 5000
+    sentinel failover-timeout judge0-redis 60000
+    sentinel parallel-syncs judge0-redis 1
+    EOF
+    fi
+
+    exec redis-server /data/sentinel.conf --sentinel

@@ -1,0 +1,31 @@
+# Bootstrap da replicação PostgreSQL para uma instalação inicial com volume vazio.
+# A senha e o Pod CIDR vêm do Secret postgres-replication, nunca deste arquivo.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-replication-init
+data:
+  10-create-replicator.sh: |
+    #!/bin/sh
+    set -eu
+
+    if [ -z "${POSTGRES_REPLICATION_PASSWORD:-}" ]; then
+      echo "POSTGRES_REPLICATION_PASSWORD ausente; não é possível inicializar replicação."
+      exit 1
+    fi
+
+    if [ -z "${POSTGRES_REPLICATION_CIDR:-}" ]; then
+      echo "POSTGRES_REPLICATION_CIDR ausente; não é possível liberar a conexão do standby."
+      exit 1
+    fi
+
+    printf '\nhost replication replicator %s scram-sha-256\n' "$POSTGRES_REPLICATION_CIDR" >> "$PGDATA/pg_hba.conf"
+
+    escaped_password=$(printf '%s' "$POSTGRES_REPLICATION_PASSWORD" | sed "s/'/''/g")
+    if psql -X -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Atc "SELECT 1 FROM pg_roles WHERE rolname = 'replicator'" | grep -q '^1$'; then
+      role_statement="ALTER ROLE replicator WITH REPLICATION LOGIN PASSWORD '$escaped_password'"
+    else
+      role_statement="CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD '$escaped_password'"
+    fi
+
+    printf '%s;\n' "$role_statement" | psql -X -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"

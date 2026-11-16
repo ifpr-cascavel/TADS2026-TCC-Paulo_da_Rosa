@@ -1,0 +1,17 @@
+# Endpoint Redis usado pelo Judge0 (REDIS_HOST=redis). O headless redis-node-1
+# permanece separado como endereço estável do primário para a replicação.
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+    role: primary
+  ports:
+    - name: redis
+      protocol: TCP
+      port: 6379
+      targetPort: 6379

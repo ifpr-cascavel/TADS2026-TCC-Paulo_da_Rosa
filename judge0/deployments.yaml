@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: srv-judge0
+  labels:
+    app: srv-judge0
+spec:
+  replicas: 2
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+
+  selector:
+    matchLabels:
+      app: srv-judge0
+
+  template:
+    metadata:
+      labels:
+        app: srv-judge0
+    spec:
+    # garante que rode em um node amd64 e nao na raspberry
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      # garante que as duas instancias ficam em nodes diferentes.
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - srv-judge0
+              topologyKey: kubernetes.io/hostname
+
+      containers:
+      - name: srv-judge0
+        image: judge0/judge0:latest
+
+        resources:
+           requests:
+             cpu: "250m"
+             memory: "256Mi"
+           limits:
+             cpu: "1000m"
+             memory: "1024Mi"
+
+        securityContext:
+          privileged: true
+          allowPrivilegeEscalation: true
+
+        ports:
+        - containerPort: 2358
+          name: http
+
+        volumeMounts:
+          - name: vol-submissions
+            # ./judge0.conf:/judge0.conf:ro
+            mountPath: /judge0.conf
+            subPath: judge0.conf
+            readOnly: true
+      volumes:
+        - name: vol-submissions
+          secret:
+            secretName: vol-config
+
+---
+
+# worket section
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wk-judge0
+
+spec:
+  replicas: 4
+
+  selector:
+    matchLabels:
+      app: wk-judge0
+
+  template:
+    metadata:
+      labels:
+        app: wk-judge0
+
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64 # garante que nao caia na rasberry, para os workers nao existe afinidade de nodes.
+
+      containers:
+        - name: wk-judge0
+          image: judge0/judge0:latest
+
+          # configurando os recursos de CPU e memória para o container (preparando o HPA)
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1500m"
+              memory: "2048Mi"
+
+          command:
+            - "./scripts/workers"
+
+          securityContext:
+            privileged: true
+            allowPrivilegeEscalation: true
+
+          volumeMounts:
+            - name: vol-workers
+              mountPath: /judge0.conf
+              subPath: judge0.conf
+              readOnly: true
+      volumes:
+        - name: vol-workers
+          secret:
+            secretName: vol-config

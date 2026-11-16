@@ -1,0 +1,12 @@
+# Arquivos locais com credenciais ou configuração renderizada.
+**/.env
+.env
+.local/
+
+# Artefatos locais de renderização/backup de configuração.
+*.rendered
+*.secret.yaml
+
+# Backups locais e dados exportados não são manifests de implantação.
+**/*backup*.sql
+**/*.bkp

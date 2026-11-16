@@ -1,0 +1,157 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"db","namespace":"default"},"spec":{"ports":[{"name":"postgres","port":5432,"targetPort":5432}],"selector":{"app":"db"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-09-05T13:26:32Z"
+    name: db
+    namespace: default
+    resourceVersion: "269788"
+    uid: 58ecf36f-ae91-4fdc-8c7c-763396c284d7
+  spec:
+    clusterIP: 10.96.136.90
+    clusterIPs:
+    - 10.96.136.90
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      app: db
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"db-replica","namespace":"default"},"spec":{"ports":[{"name":"postgres","port":5432,"targetPort":5432}],"selector":{"app":"db-replica"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-10-15T20:02:44Z"
+    name: db-replica
+    namespace: default
+    resourceVersion: "5073773"
+    uid: 67253321-6159-45a0-a3a9-fda001c4796c
+  spec:
+    clusterIP: 10.96.128.30
+    clusterIPs:
+    - 10.96.128.30
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: postgres
+      port: 5432
+      protocol: TCP
+      targetPort: 5432
+    selector:
+      app: db-replica
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"redis","namespace":"default"},"spec":{"ports":[{"name":"redis","port":6379,"protocol":"TCP","targetPort":6379}],"selector":{"app":"redis"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-09-05T13:26:32Z"
+    name: redis
+    namespace: default
+    resourceVersion: "269784"
+    uid: 871d4081-8e3f-48ec-b167-d685817171e6
+  spec:
+    clusterIP: 10.100.2.33
+    clusterIPs:
+    - 10.100.2.33
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: redis
+      port: 6379
+      protocol: TCP
+      targetPort: 6379
+    selector:
+      app: redis
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"redis-replica","namespace":"default"},"spec":{"ports":[{"name":"redis","port":6379,"protocol":"TCP","targetPort":6379}],"selector":{"app":"redis-replica"},"type":"ClusterIP"}}
+    creationTimestamp: "2026-10-15T21:01:54Z"
+    name: redis-replica
+    namespace: default
+    resourceVersion: "5079355"
+    uid: d442f031-d238-428a-a597-aad50217aa00
+  spec:
+    clusterIP: 10.99.163.132
+    clusterIPs:
+    - 10.99.163.132
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: redis
+      port: 6379
+      protocol: TCP
+      targetPort: 6379
+    selector:
+      app: redis-replica
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"judge0-service","namespace":"default"},"spec":{"ports":[{"name":"http","nodePort":30000,"port":2358,"protocol":"TCP","targetPort":2358}],"selector":{"app":"srv-judge0"},"type":"NodePort"}}
+    creationTimestamp: "2026-09-05T13:26:31Z"
+    name: judge0-service
+    namespace: default
+    resourceVersion: "269777"
+    uid: f3d33314-52bf-45a9-bdd7-9d0156e801bb
+  spec:
+    clusterIP: 10.103.107.143
+    clusterIPs:
+    - 10.103.107.143
+    externalTrafficPolicy: Cluster
+    internalTrafficPolicy: Cluster
+    ipFamilies:
+    - IPv4
+    ipFamilyPolicy: SingleStack
+    ports:
+    - name: http
+      nodePort: 30000
+      port: 2358
+      protocol: TCP
+      targetPort: 2358
+    selector:
+      app: srv-judge0
+    sessionAffinity: None
+    type: NodePort
+  status:
+    loadBalancer: {}
+kind: List
+metadata:
+  resourceVersion: ""
