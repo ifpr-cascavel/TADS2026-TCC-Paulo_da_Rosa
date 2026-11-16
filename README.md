@@ -91,10 +91,10 @@ flowchart TB
     API2 -->|"enfileira"| REDIS
     WORKERS -->|"consome trabalhos"| REDIS
     WORKERS -->|"persiste resultados"| PG
-    REDIS -.->|"replicação"| REDIS_R
-    PG -.->|"replicação"| PG_R
-    SENT -.->|"monitora/promove"| REDIS
-    SENT -.->|"monitora/promove"| REDIS_R
+    REDIS -. replicação .-> REDIS_R
+    PG -. replicação .-> PG_R
+    SENT -. monitora/promove .-> REDIS
+    SENT -. monitora/promove .-> REDIS_R
 
     classDef app fill:#e9f2ff,stroke:#326CE5,color:#163B70,stroke-width:1px;
     classDef queue fill:#fff1dd,stroke:#F59E0B,color:#854D0E,stroke-width:1px;
